@@ -1,0 +1,28 @@
+default: &default
+  adapter: mysql2
+  pool: 5
+  timeout: 5000
+  username: <%= ENV['DB_USER_NAME'].blank? ? 'root': ENV['DB_USER_NAME'] %>
+  host: <%= ENV['DB_HOST_NAME'].blank? ? '' : ENV['DB_HOST_NAME'] %>
+  password: <%= ENV['DB_PASSWORD'].blank? ? '' : ENV['DB_PASSWORD'] %>
+  port: <%= ENV['DB_PORT'] || 3306 %>
+  reconnect: false
+  encoding: utf8mb4
+  charset: utf8mb4
+  collation: utf8mb4_bin
+
+production:
+  <<: *default
+  database: app_production
+
+development:
+  <<: *default
+  database: app_development
+
+test:
+  <<: *default
+  database: app_test<%= ENV['TEST_ENV_NUMBER'] %>
+
+docker:
+  <<: *default
+  database: app_development

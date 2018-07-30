@@ -1,0 +1,27 @@
+/log
+/tmp
+!/log/.keep
+!/tmp/.keep
+/public/system
+/public/packs
+/node_modules
+
+/docker
+
+.env
+.env.dev
+
+/.bundle
+/vendor/bundle
+
+/.idea
+
+.DS_Store
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+/public/packs
+/public/packs-test
+/node_modules
+yarn-debug.log*
+.yarn-integrity

@@ -1,0 +1,88 @@
+version: '2'
+services:
+  rails: &app_base
+    build:
+      context: .
+      dockerfile: "Dockerfile.dev"
+    command: "puma -C config/puma.rb"
+    env_file:
+      - "./.env.dev"
+    volumes:
+      - ".:/app"
+      - public-data:/app/public
+      - tmp-data:/app/tmp
+      - log-data:/app/log
+    volumes_from:
+      - data
+    ports:
+      - "3100:3100"
+    depends_on:
+      - docker-mysql
+      - docker-redis
+      - nginx
+    tty: true
+    stdin_open: true
+
+  nginx:
+    build:
+      context: ./containers/nginx
+      dockerfile: Dockerfile
+    command: ["nginx", "-g", "daemon off;"]
+    ports:
+    - 80:80
+    - 443:443
+    volumes:
+    - public-data:/app/public
+    - tmp-data:/app/tmp
+
+  #  worker:
+#    <<: *app_base
+#    command: bundle exec sidekiq -q notification
+
+  webpack:
+    <<: *app_base
+    command: "bin/webpack-dev-server"
+    ports:
+      - "3035:3035"
+    depends_on:
+      - rails
+    tty: false
+    stdin_open: false
+
+  docker-mysql:
+    image: mysql:5.6
+    ports:
+    - 13306:3306
+    volumes:
+    - ./docker/var/lib/mysql:/var/lib/mysql:delegated
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    command: >
+      mysqld
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_bin
+      --innodb-file-format=Barracuda
+      --innodb-file-format-max=Barracuda
+      --innodb-file-per-table=1
+      --innodb-large-prefix=1
+
+  # Redis
+  docker-redis:
+    image: redis:3.2-alpine
+    volumes:
+    - ./docker/var/lib/redis/data:/data:delegated
+    ports:
+    - 16379:6379
+
+  data:
+    image: "busybox"
+    volumes:
+      - "bundle:/usr/local/bundle"
+
+volumes:
+  bundle:
+    driver: local
+  public-data:
+  tmp-data:
+  log-data:
