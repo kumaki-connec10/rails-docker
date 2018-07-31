@@ -126,6 +126,16 @@ jobs:
           sudo mv ecs-deploy-3.2/ecs-deploy /usr/local/bin/
           sudo chmod +x /usr/local/bin/ecs-deploy
 
+  deploy:
+    <<: *defaults
+    steps:
+    - checkout
+    - setup_remote_docker
+    - run:
+        command: |
+          PATH=$PATH:/home/circleci/.local/bin; export PATH
+          [ "$CIRCLE_BRANCH" = "master" ] && env=${CIRCLE_BRANCH:11}
+          echo "hoge"
 
 workflows:
   version: 2
