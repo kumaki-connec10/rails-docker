@@ -35,13 +35,13 @@ if [ "$env" = "production" -a "$current_branch" != "master" ]; then
   echo "Cannot deploy no master branch to production enviroment." >&2
   exit 1
 fi
-image_name=${CONTAINER_REGISTORY}/spacemarket/frontend
+image_name=${CONTAINER_REGISTORY}/rails-docker
 docker build \
   --build-arg precompile=production \
   --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
-  -t frontend ./containers/rails/Dockerfile.dev
+  -t frontend ./containers/rails/
 `aws --profile ecs-deploy-user ecr get-login --no-include-email --region ap-northeast-1 --no-include-email`
 docker tag frontend $image_name:${image_prefix}$tag
 docker push $image_name:${image_prefix}$tag
