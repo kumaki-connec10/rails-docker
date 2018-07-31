@@ -4,6 +4,7 @@ references:
       name: install awscli
       command: |
         PATH=$PATH:/home/circleci/.local/bin; export PATH
+        sudo apt-get install python3-dev
         sudo curl -O https://bootstrap.pypa.io/get-pip.py
         python3 get-pip.py --user
         pip install awscli --upgrade --user
