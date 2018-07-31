@@ -14,7 +14,7 @@ defaults: &defaults
           TZ: /usr/share/zoneinfo/Asia/Tokyo
           REDIS_HOST: 127.0.0.1
           REDIS_URL: redis://127.0.0.1:6379
-      - image: mesosphere/aws-cli
+      - image: circleci/python:3.4
         environment:
           TZ: /usr/share/zoneinfo/Asia/Tokyo
 
