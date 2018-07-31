@@ -30,9 +30,6 @@ module App
     # Don't generate system test files.
     config.generators.system_tests = nil
 
-    config.assets.configure do |env|
-      env.register_exporter %w(text/css application/javascript image/svg+xml), Sprockets::ExportersPack::BrotliExporter
-    end
 
   end
 end
