@@ -102,6 +102,30 @@ jobs:
           path: artifacts/
       - store_test_results:
           path: rspec/
+
+  install_awscli:
+    steps:
+    - attach_workspace:
+        at: ~/rails-docker
+    - run:
+        name: install awscli & ecs-deploy
+        command: |
+          PATH=$PATH:/home/circleci/.local/bin; export PATH
+          sudo apt-get -y -qq update
+          sudo apt-get -y -qq install python3.4-dev
+          sudo curl -O https://bootstrap.pypa.io/get-pip.py
+          python3.4 get-pip.py --user
+          pip install awscli --upgrade --user
+          aws configure set aws_access_key_id $AWS_DEPLOY_ACCESS_KEY_ID --profile ecs-deploy-user
+          aws configure set aws_secret_access_key $AWS_DEPLOY_SECRET_ACCESS_KEY --profile ecs-deploy-user
+    - run:
+        name: install ecs-deploy
+        command: |
+          curl -sL https://github.com/silinternational/ecs-deploy/archive/3.2.tar.gz | tar zxvf -
+          sudo mv ecs-deploy-3.2/ecs-deploy /usr/local/bin/
+          sudo chmod +x /usr/local/bin/ecs-deploy
+
+
 workflows:
   version: 2
   workflows:
@@ -110,6 +134,11 @@ workflows:
       - rspec:
           requires:
             - build
+      - deploy:
+          requires:
+            - build
+            - install_awscli
+
 #          filters:
 #            branches:
 #              ignore: /^sandbox.*|^master$|^staging$/
