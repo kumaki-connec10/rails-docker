@@ -104,6 +104,7 @@ jobs:
           path: rspec/
 
   install_awscli:
+    <<: *defaults
     steps:
     - attach_workspace:
         at: ~/rails-docker
