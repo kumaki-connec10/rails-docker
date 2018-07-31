@@ -129,7 +129,8 @@ jobs:
   deploy:
     <<: *defaults
     steps:
-    - checkout
+    - attach_workspace:
+        at: ~/rails-docker
     - setup_remote_docker
     - run:
         command: |
