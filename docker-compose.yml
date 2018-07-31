@@ -3,7 +3,7 @@ services:
   rails: &app_base
     build:
       context: .
-      dockerfile: "Dockerfile.dev"
+      dockerfile: "./containers/rails/Dockerfile.dev"
     command: "puma -C config/puma.rb"
     env_file:
       - "./.env.dev"
