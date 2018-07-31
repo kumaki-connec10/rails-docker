@@ -139,7 +139,11 @@ jobs:
     - run:
         command: |
           PATH=$PATH:/home/circleci/.local/bin; export PATH
-          [ "$CIRCLE_BRANCH" = "master" ] && env=${CIRCLE_BRANCH:11}
+          if [ "$CIRCLE_BRANCH" = "master" ]; then
+            env=production
+          else
+            env=${CIRCLE_BRANCH:11}
+          fi
           ./deploy.sh -e $env -s example_service
 
 workflows:
