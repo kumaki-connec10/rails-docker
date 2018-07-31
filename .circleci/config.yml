@@ -1,0 +1,112 @@
+defaults: &defaults
+    working_directory: ~/rails-docker
+    docker:
+      - image: circleci/ruby:2.5.0-node-browsers
+        environment:
+          TZ: /usr/share/zoneinfo/Asia/Tokyo
+          BUNDLE_APP_CONFIG: ~/rails-docker/.bundle/config
+          DB_HOST_NAME: 127.0.0.1
+      - image: circleci/mysql:5.7.20
+        environment:
+          TZ: /usr/share/zoneinfo/Asia/Tokyo
+      - image: redis
+        environment:
+          TZ: /usr/share/zoneinfo/Asia/Tokyo
+          REDIS_HOST: 127.0.0.1
+          REDIS_URL: redis://127.0.0.1:6379
+
+version: 2
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: rails-docker-{{ checksum "Gemfile.lock" }}
+#      - run:
+#          name: bundle 1.16.2
+#          command: gem install bundler -v 1.16.2
+      - run:
+          name: bundle install
+          command: bundle install --jobs=4 --path=vendor/bundle
+      - save_cache:
+          key: rails-docker-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - persist_to_workspace:
+          root: ~/rails-docker
+          paths:
+            - ./*
+  rspec:
+    parallelism: 2
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/rails-docker
+      - restore_cache:
+          keys:
+            - v1.1-bootsnap-cache-{{ .Branch }}-{{ .Revision }}
+            - v1.1-bootsnap-cache-{{ .Branch }}
+            - v1.1-bootsnap-cache
+#      - restore_cache:
+#          key: v1-rails-docker-elasticsearch
+#      - run:
+#          name: elasticsearch
+#          command: |
+#            wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.1.tar.gz && \
+#            tar -xvf elasticsearch-6.0.1.tar.gz && \
+#            if [ -z "`elasticsearch-6.0.1/bin/elasticsearch-plugin list | grep analysis-kuromoji`" ]; then \
+#            elasticsearch-6.0.1/bin/elasticsearch-plugin install analysis-kuromoji; fi
+#      - save_cache:
+#          key: v1-rails-docker-elasticsearch
+#          paths:
+#            - elasticsearch-6.0.1
+      - run:
+          name: wait for db
+          command: dockerize -wait tcp://$DB_HOST_NAME:3306 -timeout 1m
+      - run:
+          name: database create
+          command: bundle exec rake db:create db:schema:load
+          environment:
+            RAILS_ENV: test
+      - run:
+          name: run test
+          command: |
+            bundle exec rspec --profile 10 \
+              --format RspecJunitFormatter \
+              --out rspec/rspec.xml \
+              --format progress \
+              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+          environment:
+            RAILS_ENV: test
+            ELASTICSEARCH_TEST_CLUSTER_COMMAND: elasticsearch-6.0.1/bin/elasticsearch
+      - save_cache:
+          key: v1.1-bootsnap-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - tmp/cache/bootsnap-load-path-cache
+            - tmp/cache/bootsnap-compile-cache
+      - save_cache:
+          key: v1.1-bootsnap-cache-{{ .Branch }}
+          paths:
+            - tmp/cache/bootsnap-load-path-cache
+            - tmp/cache/bootsnap-compile-cache
+      - save_cache:
+          key: v1.1-bootsnap-cache
+          paths:
+            - tmp/cache/bootsnap-load-path-cache
+            - tmp/cache/bootsnap-compile-cache
+      - store_artifacts:
+          path: artifacts/
+      - store_test_results:
+          path: rspec/
+workflows:
+  version: 2
+  workflows:
+    jobs:
+      - build
+      - rspec:
+          requires:
+            - build
+#          filters:
+#            branches:
+#              ignore: /^sandbox.*|^master$|^staging$/

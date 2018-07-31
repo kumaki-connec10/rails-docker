@@ -50,7 +50,7 @@ services:
     stdin_open: false
 
   docker-mysql:
-    image: mysql:5.6
+    image: mysql:5.7
     ports:
     - 13306:3306
     volumes:
