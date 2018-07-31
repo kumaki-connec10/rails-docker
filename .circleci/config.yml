@@ -14,7 +14,7 @@ defaults: &defaults
           TZ: /usr/share/zoneinfo/Asia/Tokyo
           REDIS_HOST: 127.0.0.1
           REDIS_URL: redis://127.0.0.1:6379
-      - image: circleci/python:3.4
+      - image: circleci/python:3.4-jessie
         environment:
           TZ: /usr/share/zoneinfo/Asia/Tokyo
 
@@ -147,11 +147,10 @@ workflows:
           requires:
             - build
 
-      - install_awscli
-      - deploy:
-          requires:
-            - build
-            - install_awscli
+##      - install_awscli
+#      - deploy:
+#          requires:
+#            - install_awscli
 
 #          filters:
 #            branches:
