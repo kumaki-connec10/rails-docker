@@ -1,3 +1,23 @@
+references:
+  commands:
+    install_awscli: &install_awscli
+      name: install awscli
+      command: |
+        PATH=$PATH:/home/circleci/.local/bin; export PATH
+        sudo apt-get -y -qq update
+        sudo apt-get -y -qq install python3.4-dev
+        sudo curl -O https://bootstrap.pypa.io/get-pip.py
+        python3.4 get-pip.py --user
+        pip install awscli --upgrade --user
+        aws configure set aws_access_key_id $AWS_DEPLOY_ACCESS_KEY_ID --profile ecs-deploy-user
+        aws configure set aws_secret_access_key $AWS_DEPLOY_SECRET_ACCESS_KEY --profile ecs-deploy-user
+    install_ecs-deploy: &install_ecs-deploy
+      name: install ecs-deploy
+      command: |
+        curl -sL https://github.com/silinternational/ecs-deploy/archive/3.2.tar.gz | tar zxvf -
+        sudo mv ecs-deploy-3.2/ecs-deploy /usr/local/bin/
+        sudo chmod +x /usr/local/bin/ecs-deploy
+
 defaults: &defaults
     working_directory: ~/rails-docker
     docker:
@@ -14,10 +34,16 @@ defaults: &defaults
           TZ: /usr/share/zoneinfo/Asia/Tokyo
           REDIS_HOST: 127.0.0.1
           REDIS_URL: redis://127.0.0.1:6379
-      - image: circleci/python:3.4-jessie
-        environment:
-          TZ: /usr/share/zoneinfo/Asia/Tokyo
+    executorType: docker
+    environment:
+    - BASH_ENV: /home/circleci/.bashrc
 
+deploy_branch_filters: &deploy_branch_filters
+  filters:
+    branches:
+      only:
+      - /^deployment\/.*/
+      - master
 version: 2
 jobs:
   build:
@@ -103,40 +129,19 @@ jobs:
       - store_test_results:
           path: rspec/
 
-  install_awscli:
-    <<: *defaults
-    steps:
-    - attach_workspace:
-        at: ~/rails-docker
-    - run:
-        name: install awscli & ecs-deploy
-        command: |
-          PATH=$PATH:/home/circleci/.local/bin; export PATH
-          sudo apt-get -y -qq update
-          sudo apt-get -y -qq install python3.4-dev
-          sudo curl -O https://bootstrap.pypa.io/get-pip.py
-          python3.4 get-pip.py --user
-          pip install awscli --upgrade --user
-          aws configure set aws_access_key_id $AWS_DEPLOY_ACCESS_KEY_ID --profile ecs-deploy-user
-          aws configure set aws_secret_access_key $AWS_DEPLOY_SECRET_ACCESS_KEY --profile ecs-deploy-user
-    - run:
-        name: install ecs-deploy
-        command: |
-          curl -sL https://github.com/silinternational/ecs-deploy/archive/3.2.tar.gz | tar zxvf -
-          sudo mv ecs-deploy-3.2/ecs-deploy /usr/local/bin/
-          sudo chmod +x /usr/local/bin/ecs-deploy
-
   deploy:
     <<: *defaults
     steps:
     - attach_workspace:
         at: ~/rails-docker
     - setup_remote_docker
+    - run: *install_awscli
+    - run: *install_ecs-deploy
     - run:
         command: |
           PATH=$PATH:/home/circleci/.local/bin; export PATH
           [ "$CIRCLE_BRANCH" = "master" ] && env=${CIRCLE_BRANCH:11}
-          echo "hoge"
+          ./deploy.sh -e $env -s example_service
 
 workflows:
   version: 2
@@ -146,11 +151,10 @@ workflows:
       - rspec:
           requires:
             - build
-
-##      - install_awscli
-#      - deploy:
-#          requires:
-#            - install_awscli
+      - deploy:
+          requires:
+          - rspec
+          <<: *deploy_branch_filters
 
 #          filters:
 #            branches:
