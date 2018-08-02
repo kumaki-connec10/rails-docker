@@ -4,13 +4,12 @@ references:
       name: install awscli
       command: |
         PATH=$PATH:/home/circleci/.local/bin; export PATH
-        sudo apt-get -y -qq update
-        sudo apt-get -y -qq install python3.4-dev
+        sudo apt-get install python3-dev
         sudo curl -O https://bootstrap.pypa.io/get-pip.py
-        python3.4 get-pip.py --user
+        python3 get-pip.py --user
         pip install awscli --upgrade --user
-        aws configure set aws_access_key_id $AWS_DEPLOY_ACCESS_KEY_ID --profile ecs-deploy-user
-        aws configure set aws_secret_access_key $AWS_DEPLOY_SECRET_ACCESS_KEY --profile ecs-deploy-user
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile ecs-deploy-user
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile ecs-deploy-user
     install_ecs-deploy: &install_ecs-deploy
       name: install ecs-deploy
       command: |
@@ -140,8 +139,12 @@ jobs:
     - run:
         command: |
           PATH=$PATH:/home/circleci/.local/bin; export PATH
-          [ "$CIRCLE_BRANCH" = "master" ] && env=${CIRCLE_BRANCH:11}
-          ./deploy.sh -e $env -s example_service
+          if [ "$CIRCLE_BRANCH" = "master" ]; then
+            env=production
+          else
+            env=${CIRCLE_BRANCH:11}
+          fi
+          ./deploy.sh -e $env -s rails-docker
 
 workflows:
   version: 2
@@ -151,10 +154,10 @@ workflows:
       - rspec:
           requires:
             - build
-      - deploy:
-          requires:
-          - rspec
-          <<: *deploy_branch_filters
+#      - deploy:
+#          requires:
+#          - rspec
+#          <<: *deploy_branch_filters
 
 #          filters:
 #            branches:
