@@ -7,20 +7,26 @@ phases:
     - aws --version
     - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
     - REPOSITORY_URI=392339816894.dkr.ecr.ap-northeast-1.amazonaws.com/rails-docker
+    - REPOSITORY_URI_NGINX=392339816894.dkr.ecr.ap-northeast-1.amazonaws.com/nginx-brotli
     - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
     - echo Build started on `date`
-    - echo Building the Docker image...
+    - echo Building the rails-docker Docker image...
     - docker build -t $REPOSITORY_URI:latest .
     - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+    - echo Building the nginx-brotli Docker image...
+    - docker build -t $REPOSITORY_URI_NGINX:latest containers/nginx
+    - docker tag $REPOSITORY_URI_NGINX:latest $REPOSITORY_URI_NGINX:$IMAGE_TAG
   post_build:
     commands:
     - echo Build completed on `date`
     - echo Pushing the Docker images...
     - docker push $REPOSITORY_URI:latest
     - docker push $REPOSITORY_URI:$IMAGE_TAG
+    - docker push $REPOSITORY_URI_NGINX:latest
+    - docker push $REPOSITORY_URI_NGINX:$IMAGE_TAG
     - echo Writing image definitions file...
-    - printf '[{"name":"hello-world","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+    - printf '[{"name":"rails-docker","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
   files: imagedefinitions.json
