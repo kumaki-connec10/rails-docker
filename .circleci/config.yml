@@ -144,7 +144,7 @@ jobs:
           else
             env=${CIRCLE_BRANCH:11}
           fi
-          ./deploy.sh -e $env -s example_service
+          ./deploy.sh -e $env -s rails-docker
 
 workflows:
   version: 2
@@ -154,10 +154,10 @@ workflows:
       - rspec:
           requires:
             - build
-      - deploy:
-          requires:
-          - rspec
-          <<: *deploy_branch_filters
+#      - deploy:
+#          requires:
+#          - rspec
+#          <<: *deploy_branch_filters
 
 #          filters:
 #            branches:

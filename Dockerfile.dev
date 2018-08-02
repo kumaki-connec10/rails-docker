@@ -2,7 +2,7 @@ FROM node:10.6.0 as node
 FROM ruby:2.5.1
 
 ENV TZ=Asia/Tokyo \
-  LANG=ja_JP.UTF-8 \
+  LANG=C.UTF-8 \
   RAILS_ROOT=/app
 
 RUN apt-get update -qq && \

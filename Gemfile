@@ -45,6 +45,8 @@ group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
   gem 'pry-rails'
   gem 'pry-byebug'
+  gem 'rspec-rails'
+  gem "rspec_junit_formatter"
 end
 
 group :development do
@@ -57,8 +59,6 @@ group :development do
 end
 
 group :development, :test do
-  gem 'rspec-rails'
-  gem "rspec_junit_formatter"
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

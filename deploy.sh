@@ -63,7 +63,7 @@ docker build \
   --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
   -t frontend ./containers/rails/
-`aws --profile ecs-deploy-user ecr get-login --no-include-email --region ap-northeast-1 --no-include-email`
+`aws --profile ecs-deploy-user ecr get-login --no-include-email --region ap-northeast-1`
 
 docker tag frontend $image_name:${image_prefix}$tag
 docker push $image_name:${image_prefix}$tag
