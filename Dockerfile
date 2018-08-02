@@ -33,9 +33,8 @@ ADD Gemfile.lock /app/Gemfile.lock
 RUN bundle config build.nokogiri --use-system-libraries && \
     bundle install --jobs 20 --retry 5 && \
     mkdir -p tmp/sockets && \
-    mkdir -p tmp/pids && \
-    bundle exec rails credentials:edit
-
+    mkdir -p tmp/pids
+    
 ADD . /app
 
 RUN yarn install
@@ -44,6 +43,7 @@ ENV RAILS_ENV=$RAILS_ENV
 ENV RAILS_SERVE_STATIC_FILES=true
 ENV RAILS_LOG_TO_STDOUT=true
 
+RUN RAILS_ENV=production bundle exec rails credentials:edit
 RUN RAILS_ENV=production bundle exec rake assets:precompile
 
 VOLUME ["/app/public", "/app/tmp"]
