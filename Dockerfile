@@ -33,7 +33,8 @@ ADD Gemfile.lock /app/Gemfile.lock
 RUN bundle config build.nokogiri --use-system-libraries && \
     bundle install --jobs 20 --retry 5 && \
     mkdir -p tmp/sockets && \
-    mkdir -p tmp/pids
+    mkdir -p tmp/pids && \
+    bundle exec rails credentials:edit
 
 ADD . /app
 
